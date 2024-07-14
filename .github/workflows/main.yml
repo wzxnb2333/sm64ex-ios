@@ -38,15 +38,20 @@ jobs:
           cd SDL2/SDL2-2.0.14
           ls -al
 
+      - name: List Xcode targets
+        run: |
+          cd SDL2/SDL2-2.0.14/Xcode/SDL
+          xcodebuild -list
+
       - name: Build SDLmain-iOS
         run: |
           cd SDL2/SDL2-2.0.14/Xcode/SDL
-          xcodebuild -target SDLmain-iOS -sdk iphoneos
+          xcodebuild -target SDLmain -sdk iphoneos
 
       - name: Build Static Library-iOS
         run: |
           cd SDL2/SDL2-2.0.14/Xcode/SDL
-          xcodebuild -target StaticLibrary-iOS -sdk iphoneos
+          xcodebuild -target StaticLibrary -sdk iphoneos
 
       - name: Copy SDL2 libraries
         run: |
@@ -57,9 +62,6 @@ jobs:
 
       - name: Clone sm64ex-ios repository
         run: git clone https://github.com/wzxnb2333/sm64ex-ios.git
-
-      - name: Copy SM64 ROM
-        run: cp path/to/your/baserom.z64 sm64ex-ios/baserom.<version>.z64
 
       - name: Set up Xcode project for sm64ios
         run: |
