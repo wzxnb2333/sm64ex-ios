@@ -1,67 +1,88 @@
-name: iOS Build and Release
+name: Build sm64ios
 
 on:
   push:
-    branches: [ ios ]
+    branches:
+      - ios
   pull_request:
-    branches: [ ios ]
+    branches:
+      - ios
 
 jobs:
   build:
     runs-on: macos-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Set up Homebrew
-      run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      - name: Install Homebrew
+        run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-    - name: Install dependencies
-      run: |
-        brew install make
-        brew install gcc@12
-        brew install mingw-w64
-        brew install imagemagick
+      - name: Install GNU make
+        run: brew install make
 
-    - name: Download SDL2 source code
-      run: git clone https://github.com/libsdl-org/SDL.git
+      - name: Install gcc@12
+        run: brew install gcc@12
 
-    - name: List Xcode project targets
-      run: |
-        cd SDL/xcode/SDL
-        xcodebuild -list
+      - name: Install mingw-w64
+        run: brew install mingw-w64
 
-    - name: Build SDL2 for iOS
-      run: |
-        cd SDL/xcode/SDL
-        xcodebuild -project SDL.xcodeproj -target "Static Library-iOS" -configuration Release -sdk iphoneos
-        mkdir -p ../../../../ioslib/lib
-        cp build/Release-iphoneos/libSDL2.a build/Release-iphoneos/libSDL2main.a ../../../../ioslib/lib/
-        mkdir -p ../../../../ioslib/include/SDL2
-        cp -R ../../../../include/* ../../../../ioslib/include/SDL2/
+      - name: Install ImageMagick (optional)
+        run: brew install imagemagick
 
-    - name: Set up working directory
-      run: |
-        mkdir -p ioslib/include
-        cd ioslib
-        git clone https://github.com/wzxnb2333/sm64ex-ios.git
+      - name: Download and extract SDL2 source code
+        run: |
+          curl -LO https://www.libsdl.org/release/SDL2-2.0.14.zip
+          unzip SDL2-2.0.14.zip
+          cd SDL2-2.0.14
+          open Xcode/SDL/SDL.xcodeproj
 
-    - name: Create Xcode project for sm64ios
-      run: |
-        cd ioslib/sm64ex-ios
-        xcodebuild -project sm64ios.xcodeproj -target sm64ios -configuration Release
-        security cms -D -i ios/embedded.mobileprovision > tmp.plist
-        /usr/libexec/PlistBuddy -x -c 'Print:Entitlements' tmp.plist > sm64ios.entitlements
-        rm -rf tmp.plist
+      - name: Build SDLmain-iOS
+        run: |
+          cd SDL2-2.0.14
+          xcodebuild -target SDLmain-iOS -sdk iphoneos
 
-    - name: Build sm64ios.ipa
-      run: |
-        cd ioslib/sm64ex-ios
-        ./build_ios.sh
+      - name: Build Static Library-iOS
+        run: |
+          cd SDL2-2.0.14
+          xcodebuild -target StaticLibrary-iOS -sdk iphoneos
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: sm64ios
-        path: ioslib/sm64ex-ios/build/sm64ios.ipa
+      - name: Copy SDL2 libraries
+        run: |
+          mkdir -p ioslib/include/SDL2 ioslib/lib
+          cp SDL2-2.0.14/Xcode/SDL/build/Release-iphoneos/libSDL2.a ioslib/lib/
+          cp SDL2-2.0.14/Xcode/SDL/build/Release-iphoneos/libSDL2main.a ioslib/lib/
+          cp -r SDL2-2.0.14/include/* ioslib/include/SDL2/
+
+      - name: Clone sm64ex-ios repository
+        run: git clone https://github.com/wzxnb2333/sm64ex-ios.git
+
+      - name: Set up Xcode project for sm64ios
+        run: |
+          cd sm64ex-ios
+          # Use Xcode commands to set up the project
+          # This part needs to be done manually or with custom scripts
+
+      - name: Create entitlements file
+        run: |
+          security cms -D -i ios/embedded.mobileprovision > tmp.plist
+          /usr/libexec/PlistBuddy -x -c 'Print:Entitlements' tmp.plist > sm64ios.entitlements
+          rm -rf tmp.plist
+
+      - name: Build sm64ios.ipa
+        run: |
+          cd sm64ex-ios
+          ./build_ios.sh
+
+      - name: (Optional) Create app icon
+        run: |
+          cd sm64ex-ios
+          ./appicon.sh
+          ./build_ios.sh
+
+      - name: Upload sm64ios.ipa as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: sm64ios.ipa
+          path: sm64ex-ios/build/sm64ios.ipa
