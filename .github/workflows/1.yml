@@ -1,0 +1,71 @@
+name: Build sm64ios
+
+on:
+  push:
+    branches:
+      - ios
+  pull_request:
+    branches:
+      - ios
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Homebrew
+        run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+      - name: Install GNU make
+        run: brew install make
+
+      - name: Install gcc@12
+        run: brew install gcc@12
+
+      - name: Install mingw-w64
+        run: brew install mingw-w64
+
+      - name: Install ImageMagick (optional)
+        run: brew install imagemagick
+
+      - name: Create working directory
+        run: mkdir sm64ios && cd sm64ios
+
+      - name: Clone sm64ex-ios and SDL2
+        run: |
+          cd sm64ios
+          git clone https://github.com/wzxnb2333/sm64ex-ios.git
+          git clone -b SDL2 https://github.com/libsdl-org/SDL.git SDL2
+          mkdir include
+          cp -a SDL2/include include/
+          mv include/include include/SDL2
+
+      - name: Copy SM64 ROM
+
+      - name: Optional - Create app icon
+        run: |
+          cd sm64ios/sm64ex-ios
+          ./appicon.sh
+
+      - name: Open Xcode workspace and configure
+        run: |
+          cd sm64ios/sm64ex-ios
+          open sm64ios.xcworkspace
+          # The following steps need to be done manually or scripted if possible:
+          # 1. Select sm64ios in the Project navigator and under "Signing & Capabilities", choose your team
+          # 2. Change the bundle identifier to something unique (ex. com.<yourteam>.sm64ios)
+          # 3. Set your build target to sm64ios > <desired iOS build target> or sm64tvos > <desired tvOS build target>
+
+      - name: Build sm64ios
+        run: |
+          cd sm64ios/sm64ex-ios
+          xcodebuild -workspace sm64ios.xcworkspace -scheme sm64ios -sdk iphoneos
+
+      - name: Upload sm64ios build as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: sm64ios
+          path: sm64ios/sm64ex-ios/build/Release-iphoneos/sm64ios.ipa
