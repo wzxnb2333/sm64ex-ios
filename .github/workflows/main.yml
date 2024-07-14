@@ -34,29 +34,32 @@ jobs:
       - name: Download and extract SDL2 source code
         run: |
           curl -LO https://www.libsdl.org/release/SDL2-2.0.14.zip
-          unzip SDL2-2.0.14.zip
-          cd SDL2-2.0.14
-          open Xcode/SDL/SDL.xcodeproj
+          unzip SDL2-2.0.14.zip -d SDL2
+          cd SDL2/SDL2-2.0.14
+          ls -al
 
       - name: Build SDLmain-iOS
         run: |
-          cd SDL2-2.0.14
+          cd SDL2/SDL2-2.0.14/Xcode/SDL
           xcodebuild -target SDLmain-iOS -sdk iphoneos
 
       - name: Build Static Library-iOS
         run: |
-          cd SDL2-2.0.14
+          cd SDL2/SDL2-2.0.14/Xcode/SDL
           xcodebuild -target StaticLibrary-iOS -sdk iphoneos
 
       - name: Copy SDL2 libraries
         run: |
           mkdir -p ioslib/include/SDL2 ioslib/lib
-          cp SDL2-2.0.14/Xcode/SDL/build/Release-iphoneos/libSDL2.a ioslib/lib/
-          cp SDL2-2.0.14/Xcode/SDL/build/Release-iphoneos/libSDL2main.a ioslib/lib/
-          cp -r SDL2-2.0.14/include/* ioslib/include/SDL2/
+          cp SDL2/SDL2-2.0.14/Xcode/SDL/build/Release-iphoneos/libSDL2.a ioslib/lib/
+          cp SDL2/SDL2-2.0.14/Xcode/SDL/build/Release-iphoneos/libSDL2main.a ioslib/lib/
+          cp -r SDL2/SDL2-2.0.14/include/* ioslib/include/SDL2/
 
       - name: Clone sm64ex-ios repository
         run: git clone https://github.com/wzxnb2333/sm64ex-ios.git
+
+      - name: Copy SM64 ROM
+        run: cp path/to/your/baserom.z64 sm64ex-ios/baserom.<version>.z64
 
       - name: Set up Xcode project for sm64ios
         run: |
@@ -66,6 +69,7 @@ jobs:
 
       - name: Create entitlements file
         run: |
+          cd sm64ex-ios
           security cms -D -i ios/embedded.mobileprovision > tmp.plist
           /usr/libexec/PlistBuddy -x -c 'Print:Entitlements' tmp.plist > sm64ios.entitlements
           rm -rf tmp.plist
