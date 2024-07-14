@@ -34,8 +34,8 @@ jobs:
       - name: Download and extract SDL2 source code
         run: |
           curl -LO https://www.libsdl.org/release/SDL2-2.30.5.zip
-          unzip SDL2-2.0.14.zip -d SDL2
-          cd SDL2/SDL2-2.0.14
+          unzip SDL2-2.30.5.zip -d SDL2
+          cd SDL2/SDL2-2.30.5
           ls -al
 
       - name: List Xcode targets
