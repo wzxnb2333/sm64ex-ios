@@ -40,25 +40,25 @@ jobs:
 
       - name: List Xcode targets
         run: |
-          cd SDL2/SDL2-2.0.14/Xcode/SDL
+          cd SDL2/SDL2-2.30.5/Xcode/SDL
           xcodebuild -list
 
       - name: Build SDLmain-iOS
         run: |
-          cd SDL2/SDL2-2.0.14/Xcode/SDL
+          cd SDL2/SDL2-2.30.5/Xcode/SDL
           xcodebuild -target SDLmain -sdk iphoneos
 
       - name: Build Static Library-iOS
         run: |
-          cd SDL2/SDL2-2.0.14/Xcode/SDL
+          cd SDL2/SDL2-2.30.5/Xcode/SDL
           xcodebuild -target StaticLibrary -sdk iphoneos
 
       - name: Copy SDL2 libraries
         run: |
           mkdir -p ioslib/include/SDL2 ioslib/lib
-          cp SDL2/SDL2-2.0.14/Xcode/SDL/build/Release-iphoneos/libSDL2.a ioslib/lib/
-          cp SDL2/SDL2-2.0.14/Xcode/SDL/build/Release-iphoneos/libSDL2main.a ioslib/lib/
-          cp -r SDL2/SDL2-2.0.14/include/* ioslib/include/SDL2/
+          cp SDL2/SDL2-2.30.5/Xcode/SDL/build/Release-iphoneos/libSDL2.a ioslib/lib/
+          cp SDL2/SDL2-2.30.5/Xcode/SDL/build/Release-iphoneos/libSDL2main.a ioslib/lib/
+          cp -r SDL2/SDL2-2.30.5/include/* ioslib/include/SDL2/
 
       - name: Clone sm64ex-ios repository
         run: git clone https://github.com/wzxnb2333/sm64ex-ios.git
