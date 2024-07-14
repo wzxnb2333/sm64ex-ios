@@ -1,0 +1,67 @@
+name: iOS Build and Release
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Homebrew
+      run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+    - name: Install dependencies
+      run: |
+        brew install make
+        brew install gcc@12
+        brew install mingw-w64
+        brew install imagemagick
+
+    - name: Download SDL2 source code
+      run: git clone https://github.com/libsdl-org/SDL.git
+
+    - name: List Xcode project targets
+      run: |
+        cd SDL/xcode/SDL
+        xcodebuild -list
+
+    - name: Build SDL2 for iOS
+      run: |
+        cd SDL/xcode/SDL
+        xcodebuild -project SDL.xcodeproj -target "Static Library-iOS" -configuration Release -sdk iphoneos
+        mkdir -p ../../../../ioslib/lib
+        cp build/Release-iphoneos/libSDL2.a build/Release-iphoneos/libSDL2main.a ../../../../ioslib/lib/
+        mkdir -p ../../../../ioslib/include/SDL2
+        cp -R ../../../../include/* ../../../../ioslib/include/SDL2/
+
+    - name: Set up working directory
+      run: |
+        mkdir -p ioslib/include
+        cd ioslib
+        git clone https://github.com/wzxnb2333/sm64ex-ios.git
+
+    - name: Create Xcode project for sm64ios
+      run: |
+        cd ioslib/sm64ex-ios
+        xcodebuild -project sm64ios.xcodeproj -target sm64ios -configuration Release
+        security cms -D -i ios/embedded.mobileprovision > tmp.plist
+        /usr/libexec/PlistBuddy -x -c 'Print:Entitlements' tmp.plist > sm64ios.entitlements
+        rm -rf tmp.plist
+
+    - name: Build sm64ios.ipa
+      run: |
+        cd ioslib/sm64ex-ios
+        ./build_ios.sh
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: sm64ios
+        path: ioslib/sm64ex-ios/build/sm64ios.ipa
